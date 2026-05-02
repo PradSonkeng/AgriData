@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriData CM — Agriculture & Sécurité Alimentaire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark">
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-icon">🌿</div>
+    <div>
+      <div class="logo-text">AgriData CM</div>
+      <span class="logo-sub">Agriculture &amp; Sécurité Alimentaire</span>
+    </div>
+  </div>
+  <div class="nav-center">
+    <div class="sync-chip" id="sync-chip">
+      <span class="pulse-dot"></span>
+      <span id="sync-label">Vérification...</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()" title="Thème">☀️</button>
+    <div class="user-badge">
+      <div class="user-avatar">AK</div>
+      <span class="user-name">Agronome Koude</span>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section" data-i18n="s_collect">COLLECTE</div>
+    <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+      <span class="ico">🏠</span><span class="lbl" data-i18n="nav_dashboard">Tableau de bord</span>
+    </div>
+    <div class="nav-item" onclick="showPage('producteur')" id="nav-producteur">
+      <span class="ico">👨‍🌾</span><span class="lbl" data-i18n="nav_producteur">Producteur</span>
+    </div>
+    <div class="nav-item" onclick="showPage('parcelle')" id="nav-parcelle">
+      <span class="ico">🗺️</span><span class="lbl" data-i18n="nav_parcelle">Parcelle &amp; GPS</span>
+    </div>
+    <div class="nav-item" onclick="showPage('phyto')" id="nav-phyto">
+      <span class="ico">🔬</span><span class="lbl" data-i18n="nav_phyto">Phytosanitaire</span>
+    </div>
+    <div class="nav-item" onclick="showPage('marche')" id="nav-marche">
+      <span class="ico">💰</span><span class="lbl" data-i18n="nav_marche">Prix Marché</span>
+    </div>
+    <div class="nav-item" onclick="showPage('climat')" id="nav-climat">
+      <span class="ico">🌧️</span><span class="lbl" data-i18n="nav_climat">Climatologie</span>
+    </div>
+    <div class="sidebar-section" style="margin-top:10px" data-i18n="s_analyse">ANALYSE</div>
+    <div class="nav-item" onclick="showPage('analyse')" id="nav-analyse">
+      <span class="ico">📉</span><span class="lbl" data-i18n="nav_analyse">Analyses Stat.</span>
+    </div>
+    <div class="nav-item" onclick="showPage('donnees')" id="nav-donnees">
+      <span class="ico">🗄️</span><span class="lbl" data-i18n="nav_donnees">Données</span>
+      <span class="badge" id="badge-donnees">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('export')" id="nav-export">
+      <span class="ico">📥</span><span class="lbl" data-i18n="nav_export">Exporter</span>
+    </div>
+    <div class="sidebar-bottom">
+      <div style="font-size:10px;color:var(--text3)">AgriData CM v1.0</div>
+      <div style="font-size:10px;color:var(--text3)">🔒 RGPD Conforme</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ════════════════════ DASHBOARD ════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🌾 <span data-i18n="t_dashboard">Tableau de bord</span></div>
+          <div class="page-sub" data-i18n="sub_dashboard">Vue d'ensemble — Région Centre, Cameroun</div>
+        </div>
+        <button class="btn btn-primary" onclick="loadDashboard()">🔄 Actualiser</button>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card green"><div class="stat-ico">👨‍🌾</div><div class="stat-val" id="s-prod">—</div><div class="stat-lbl">Producteurs</div></div>
+        <div class="stat-card amber"><div class="stat-ico">🌾</div><div class="stat-val" id="s-ha">—</div><div class="stat-lbl">Hectares cartographiés</div></div>
+        <div class="stat-card blue"><div class="stat-ico">📸</div><div class="stat-val" id="s-phyto">—</div><div class="stat-lbl">Relevés phytosanitaires</div></div>
+        <div class="stat-card teal"><div class="stat-ico">📊</div><div class="stat-val" id="s-analyse">—</div><div class="stat-lbl">Analyses effectuées</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">💰 Prix moyens (FCFA/50kg)</div>
+          <div id="prix-bars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🌧️ Pluviométrie récente (mm)</div>
+          <div id="pluie-bars"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ PRODUCTEUR ════════════════════ -->
+    <div class="page" id="page-producteur">
+      <div class="page-header">
+        <div>
+          <div class="page-title">👨‍🌾 <span data-i18n="t_producteur">Fiche Producteur</span></div>
+          <div class="page-sub" data-i18n="sub_producteur">Recensement des producteurs agricoles</div>
+        </div>
+        <button class="btn btn-secondary" onclick="showPage('liste-producteurs')">📋 Voir la liste</button>
+      </div>
+      <form id="form-producteur" onsubmit="submitProducteur(event)">
+        <div class="form-section">
+          <div class="form-section-title">👤 Identité</div>
+          <div class="form-grid">
+            <div class="field"><label>Nom complet *</label><input name="nom" type="text" placeholder="Ex: Jean Mbarga" required></div>
+            <div class="field"><label>Téléphone</label><input name="telephone" type="tel" placeholder="+237 6XX XXX XXX"></div>
+            <div class="field"><label>Localité / Village</label><input name="localite" type="text" placeholder="Ex: Obala, Mfou..."></div>
+            <div class="field"><label>Département</label>
+              <select name="departement">
+                <option>Mfoundi</option><option>Haute-Sanaga</option><option>Lekié</option>
+                <option>Mbam-et-Inoubou</option><option>Nyong-et-Kellé</option>
+                <option>Nyong-et-So'o</option><option>Nyong-et-Mfoumou</option>
+              </select>
+            </div>
+            <div class="field"><label>Sexe</label>
+              <select name="sexe"><option>Masculin</option><option>Féminin</option></select>
+            </div>
+            <div class="field"><label>Âge</label><input name="age" type="number" min="15" max="99" placeholder="Ex: 42"></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">🏠 Ménage &amp; Coopérative</div>
+          <div class="form-grid">
+            <div class="field"><label>Taille du ménage</label><input name="taille_menage" type="number" min="1" placeholder="Ex: 6"></div>
+            <div class="field"><label>Actifs agricoles</label><input name="actifs_agricoles" type="number" min="0" placeholder="Ex: 3"></div>
+            <div class="field"><label>Appartient à une GIC/Coopérative</label>
+              <select name="appartient_gic" onchange="toggleGIC(this)">
+                <option value="0">Non</option><option value="1">Oui</option>
+              </select>
+            </div>
+            <div class="field" id="field-gic" style="display:none"><label>Nom de la GIC</label><input name="nom_gic" type="text" placeholder="Ex: SAGRIMA, CAPLAMI..."></div>
+            <div class="field"><label>Culture principale</label>
+              <select name="culture_principale">
+                <option>Maïs</option><option>Cacao</option><option>Manioc</option><option>Plantain</option>
+                <option>Oignon</option><option>Tomate</option><option>Café</option><option>Riz</option><option>Autre</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">🔒 Consentement RGPD</div>
+          <div class="rgpd-box">
+            📋 Les données collectées sont utilisées uniquement à des fins de recherche agricole et de sécurité alimentaire. Conformément à la loi camerounaise n°2010/012, vous pouvez demander l'accès, la rectification ou la suppression de vos données à tout moment.
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" name="consentement_rgpd" value="1" required>
+            <span>Je consens au traitement de mes données personnelles *</span>
+          </label>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" onclick="resetForm('form-producteur')">🗑️ Annuler</button>
+          <button type="submit" class="btn btn-primary">💾 Enregistrer producteur</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ════════════════════ LISTE PRODUCTEURS ════════════════════ -->
+    <div class="page" id="page-liste-producteurs">
+      <div class="page-header">
+        <div><div class="page-title">📋 Liste des Producteurs</div></div>
+        <button class="btn btn-primary" onclick="showPage('producteur')">➕ Nouveau</button>
+      </div>
+      <div class="card">
+        <div id="table-producteurs"><div class="loading">Chargement...</div></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ PARCELLE & GPS ════════════════════ -->
+    <div class="page" id="page-parcelle">
+      <div class="page-header">
+        <div><div class="page-title">🗺️ Parcelle &amp; GPS</div>
+        <div class="page-sub">Tracé polygone &amp; calcul automatique de superficie</div></div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">👤 Producteur associé</div>
+        <div class="form-grid">
+          <div class="field field-full">
+            <label>Sélectionner un producteur *</label>
+            <select id="select-producteur-parcelle"><option value="">-- Choisir --</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">📍 Tracé GPS — Polygone</div>
+        <div class="gps-status-bar">
+          <div class="gps-status active" id="gps-status">
+            <span class="pulse"></span><span id="gps-label-text">Activation GPS...</span>
+          </div>
+          <div class="gps-accuracy" id="gps-accuracy"></div>
+        </div>
+        <div class="gps-coords" id="gps-coords">
+          <div class="gps-item"><span class="gps-lbl">Latitude</span><span class="gps-val" id="gps-lat">—</span></div>
+          <div class="gps-item"><span class="gps-lbl">Longitude</span><span class="gps-val" id="gps-lng">—</span></div>
+          <div class="gps-item"><span class="gps-lbl">Altitude</span><span class="gps-val" id="gps-alt">—</span></div>
+        </div>
+        <div class="map-container" id="map-container">
+          <div class="map-grid"></div>
+          <div class="map-canvas" id="map-canvas"></div>
+          <div class="map-hint" id="map-hint">🗺️ Activez le GPS et ajoutez des points pour tracer le périmètre du champ</div>
+        </div>
+        <div id="polygon-points-container" style="margin-top:10px">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Points enregistrés :</div>
+          <div id="polygon-pts" class="polygon-pts"></div>
+        </div>
+        <div class="gps-actions">
+          <button class="btn btn-primary" onclick="addGPSPoint()" id="btn-add-pt">📍 Ajouter point GPS</button>
+          <button class="btn btn-secondary" onclick="undoLastPoint()">↩️ Annuler dernier</button>
+          <button class="btn btn-danger" onclick="clearPolygon()">🗑️ Effacer tout</button>
+          <div class="superficie-display">
+            <span class="sup-label">Surface calculée</span>
+            <span class="sup-value" id="superficie">0.00 ha</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">🌱 Caractéristiques</div>
+        <div class="form-grid">
+          <div class="field"><label>Type de sol</label>
+            <select id="parc-type-sol"><option>Ferrallitique (rouge)</option><option>Hydromorphe</option><option>Volcanique</option><option>Sablonneux</option><option>Argileux</option></select>
+          </div>
+          <div class="field"><label>Culture principale</label>
+            <select id="parc-culture"><option>Maïs</option><option>Cacao</option><option>Manioc</option><option>Plantain</option><option>Tomate</option><option>Oignon</option></select>
+          </div>
+          <div class="field"><label>Méthode de mesure</label>
+            <select id="parc-methode"><option>Tracé polygone GPS</option><option>Estimation manuelle</option><option>Arpentage</option></select>
+          </div>
+          <div class="field"><label>Type de terrain</label>
+            <select id="parc-terrain"><option>Plaine</option><option>Colline</option><option>Bas-fond</option><option>Plateau</option></select>
+          </div>
+          <div class="field field-full"><label>Observations</label><textarea id="parc-obs" placeholder="Notes complémentaires..."></textarea></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="clearPolygon()">🔄 Recommencer</button>
+        <button class="btn btn-primary" onclick="saveParcelle()">💾 Enregistrer parcelle</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════ PHYTOSANITAIRE ════════════════════ -->
+    <div class="page" id="page-phyto">
+      <div class="page-header">
+        <div><div class="page-title">🔬 Relevé Phytosanitaire</div>
+        <div class="page-sub">Capture photo sécurisée — EXIF automatiques</div></div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">📸 Capture d'image</div>
+        <div class="alert-warning">
+          🔒 Import depuis galerie désactivé — Seule la capture en direct est autorisée (GPS + horodatage EXIF intégrés automatiquement)
+        </div>
+        <div class="photo-area" id="photo-area" onclick="triggerCamera()">
+          <span style="font-size:36px">📷</span>
+          <p>Appuyer pour ouvrir l'appareil photo</p>
+          <p style="font-size:11px;margin-top:4px;color:var(--text3)">Feuilles · Tiges · Fruits · Racines</p>
+        </div>
+        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoCapture(this)">
+        <div id="photo-preview-container">
+          <div id="photo-thumbs" class="photo-thumbs"></div>
+          <div id="exif-display" style="display:none" class="exif-info"></div>
+        </div>
+      </div>
+      <form id="form-phyto" onsubmit="submitPhyto(event)">
+        <div class="form-section">
+          <div class="form-section-title">🌿 Diagnostic</div>
+          <div class="form-grid">
+            <div class="field"><label>Organe observé</label>
+              <select name="organe"><option>Feuille</option><option>Tige</option><option>Fruit</option><option>Racine</option><option>Graine</option></select>
+            </div>
+            <div class="field"><label>Symptôme</label>
+              <select name="symptome"><option>Taches foliaires</option><option>Jaunissement</option><option>Pourriture</option><option>Galerie d'insecte</option><option>Fonte de semis</option><option>Mildiou</option><option>Autre</option></select>
+            </div>
+            <div class="field"><label>Sévérité</label>
+              <select name="severite"><option>Légère (&lt;10%)</option><option>Modérée (10–30%)</option><option>Grave (&gt;30%)</option></select>
+            </div>
+            <div class="field"><label>Culture</label>
+              <select name="culture"><option>Maïs</option><option>Cacao</option><option>Manioc</option><option>Plantain</option><option>Tomate</option><option>Autre</option></select>
+            </div>
+            <div class="field field-full"><label>Description</label><textarea name="description" placeholder="Décrivez ce que vous observez..."></textarea></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" onclick="resetForm('form-phyto')">🗑️ Annuler</button>
+          <button type="submit" class="btn btn-primary">💾 Enregistrer relevé</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ════════════════════ MARCHÉ ════════════════════ -->
+    <div class="page" id="page-marche">
+      <div class="page-header">
+        <div><div class="page-title">💰 Prix Marché</div>
+        <div class="page-sub">Saisie des prix locaux (FCFA / sac 50 kg)</div></div>
+      </div>
+      <form id="form-marche" onsubmit="submitMarche(event)">
+        <div class="form-section">
+          <div class="form-section-title">🏪 Informations</div>
+          <div class="form-grid">
+            <div class="field"><label>Marché *</label>
+              <select name="marche" required>
+                <option>Mfoundi (Yaoundé)</option><option>Sandaga (Douala)</option>
+                <option>Mvog-Mbi</option><option>Nkolbisson</option>
+                <option>Bafoussam Marché A</option><option>Garoua Grand Marché</option>
+                <option>Maroua Central</option><option>Bertoua Marché</option>
+              </select>
+            </div>
+            <div class="field"><label>Date de relevé *</label><input name="date_releve" type="date" required></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">📦 Prix par produit (FCFA / 50 kg)</div>
+          <div class="form-grid-3" id="prix-inputs">
+            <div class="field"><label>🌽 Maïs</label><div class="input-unit"><input name="prix_Maïs" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+            <div class="field"><label>🍫 Cacao</label><div class="input-unit"><input name="prix_Cacao" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+            <div class="field"><label>🧅 Oignon</label><div class="input-unit"><input name="prix_Oignon" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+            <div class="field"><label>🍠 Manioc</label><div class="input-unit"><input name="prix_Manioc" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+            <div class="field"><label>🍌 Plantain (régime)</label><div class="input-unit"><input name="prix_Plantain" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+            <div class="field"><label>🍅 Tomate (filet)</label><div class="input-unit"><input name="prix_Tomate" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+            <div class="field"><label>☕ Café Arabica</label><div class="input-unit"><input name="prix_Café" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+            <div class="field"><label>🌾 Riz local</label><div class="input-unit"><input name="prix_Riz" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+            <div class="field"><label>🫘 Haricot</label><div class="input-unit"><input name="prix_Haricot" type="number" min="0" placeholder="0"><span class="unit">FCFA</span></div></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" onclick="resetForm('form-marche')">🗑️ Annuler</button>
+          <button type="submit" class="btn btn-primary">💾 Enregistrer les prix</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ════════════════════ CLIMATOLOGIE ════════════════════ -->
+    <div class="page" id="page-climat">
+      <div class="page-header">
+        <div><div class="page-title">🌧️ Climatologie</div>
+        <div class="page-sub">Pluviométrie et données météo déclaratives</div></div>
+      </div>
+      <form id="form-climat" onsubmit="submitClimat(event)">
+        <div class="form-section">
+          <div class="form-section-title">🌦️ Relevé Pluviométrique</div>
+          <div class="form-grid">
+            <div class="field"><label>Localité</label><input name="localite" type="text" placeholder="Ex: Yaoundé, Bafoussam..."></div>
+            <div class="field"><label>Mois / Année *</label><input name="mois_annee" type="month" required></div>
+            <div class="field"><label>Pluviométrie totale (mm)</label><input name="pluviometrie_mm" type="number" min="0" step="0.1" placeholder="Ex: 142"></div>
+            <div class="field"><label>Nombre de jours de pluie</label><input name="jours_pluie" type="number" min="0" max="31" placeholder="Ex: 18"></div>
+            <div class="field"><label>Intensité maximale (mm/j)</label><input name="intensite_max" type="number" min="0" step="0.1" placeholder="Ex: 32"></div>
+            <div class="field"><label>Température moyenne (°C)</label><input name="temp_moyenne" type="number" min="-5" max="50" step="0.1" placeholder="Ex: 24"></div>
+            <div class="field"><label>Humidité relative (%)</label><input name="humidite_moy" type="number" min="0" max="100" placeholder="Ex: 78"></div>
+            <div class="field"><label>Événement remarquable</label>
+              <select name="evenement"><option>Aucun</option><option>Sécheresse</option><option>Inondation</option><option>Grêle</option><option>Vents violents</option><option>Brouillard dense</option></select>
+            </div>
+            <div class="field field-full"><label>Notes</label><textarea name="notes" placeholder="Observations complémentaires..."></textarea></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" onclick="resetForm('form-climat')">🗑️ Annuler</button>
+          <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ════════════════════ ANALYSES ════════════════════ -->
+    <div class="page" id="page-analyse">
+      <div class="page-header">
+        <div><div class="page-title">📉 Analyses Statistiques</div>
+        <div class="page-sub">Moteur Python — Résultats en temps réel</div></div>
+      </div>
+      <div class="analysis-grid">
+        <div class="analysis-card" onclick="lancerAnalyse('regression_simple')">
+          <span class="a-ico">📈</span>
+          <h4>Régression Linéaire Simple</h4>
+          <p>Relation entre 2 variables (ex: pluie → rendement)</p>
+          <span class="a-tag">Y = a·X + b</span>
+        </div>
+        <div class="analysis-card" onclick="lancerAnalyse('regression_multiple')">
+          <span class="a-ico">📊</span>
+          <h4>Régression Multiple</h4>
+          <p>Impact combiné de plusieurs facteurs</p>
+          <span class="a-tag">Y = Σ aᵢ·Xᵢ + b</span>
+        </div>
+        <div class="analysis-card" onclick="lancerAnalyse('pca')">
+          <span class="a-ico">🔻</span>
+          <h4>Réduction Dimensionnalité</h4>
+          <p>PCA pour visualiser des données complexes</p>
+          <span class="a-tag">PCA · ACP</span>
+        </div>
+        <div class="analysis-card" onclick="lancerAnalyse('classification_supervisee')">
+          <span class="a-ico">🌳</span>
+          <h4>Classification Supervisée</h4>
+          <p>Prédiction de maladies, rendement faible/fort</p>
+          <span class="a-tag">KNN · SVM · RF</span>
+        </div>
+        <div class="analysis-card" onclick="lancerAnalyse('clustering')">
+          <span class="a-ico">🔵</span>
+          <h4>Clustering (Non-Supervisé)</h4>
+          <p>Regroupement de parcelles similaires</p>
+          <span class="a-tag">K-Means</span>
+        </div>
+        <div class="analysis-card" onclick="lancerAnalyse('stats_descriptives')">
+          <span class="a-ico">📋</span>
+          <h4>Statistiques Descriptives</h4>
+          <p>Moyennes, médianes, quartiles, distributions</p>
+          <span class="a-tag">Exploratoire</span>
+        </div>
+      </div>
+      <div class="card" id="analyse-result-container" style="display:none">
+        <div class="card-title">📐 Résultats</div>
+        <div id="analyse-spinner" class="loading" style="display:none">⏳ Analyse en cours...</div>
+        <div id="analyse-result"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ DONNÉES ════════════════════ -->
+    <div class="page" id="page-donnees">
+      <div class="page-header">
+        <div><div class="page-title">🗄️ Données Collectées</div></div>
+      </div>
+      <div class="tabs" id="data-tabs">
+        <div class="tab active" onclick="loadTable('producteurs', this)">👨‍🌾 Producteurs</div>
+        <div class="tab" onclick="loadTable('parcelles', this)">🗺️ Parcelles</div>
+        <div class="tab" onclick="loadTable('prix_marche', this)">💰 Prix</div>
+        <div class="tab" onclick="loadTable('phyto', this)">🔬 Phyto</div>
+        <div class="tab" onclick="loadTable('climatologie', this)">🌧️ Climat</div>
+        <div class="tab" onclick="loadTable('analyses', this)">📉 Analyses</div>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <div id="data-table-container"><div class="loading">Chargement...</div></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ EXPORT ════════════════════ -->
+    <div class="page" id="page-export">
+      <div class="page-header">
+        <div><div class="page-title">📥 Exportation</div>
+        <div class="page-sub">CSV · JSON · Rapport HTML — Gzip REST</div></div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">⚙️ Options</div>
+        <div class="form-grid">
+          <div class="field"><label>Table à exporter</label>
+            <select id="exp-table">
+              <option value="producteurs">Producteurs</option>
+              <option value="parcelles">Parcelles</option>
+              <option value="prix_marche">Prix marchés</option>
+              <option value="phyto">Phytosanitaire</option>
+              <option value="climatologie">Climatologie</option>
+              <option value="analyses">Analyses</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="export-grid">
+        <div class="export-card" onclick="exportData('csv')">
+          <div class="exp-ico">📄</div>
+          <div class="exp-title">CSV</div>
+          <div class="exp-desc">Compatible Excel, R, Python, SPSS</div>
+          <button class="btn btn-secondary" style="margin-top:12px;width:100%">Télécharger CSV</button>
+        </div>
+        <div class="export-card" onclick="exportData('json')">
+          <div class="exp-ico">🔧</div>
+          <div class="exp-title">JSON</div>
+          <div class="exp-desc">API REST, intégration systèmes</div>
+          <button class="btn btn-secondary" style="margin-top:12px;width:100%">Télécharger JSON</button>
+        </div>
+        <div class="export-card" onclick="exportRapport()">
+          <div class="exp-ico">📑</div>
+          <div class="exp-title">Rapport HTML</div>
+          <div class="exp-desc">Rapport complet avec statistiques</div>
+          <button class="btn btn-secondary" style="margin-top:12px;width:100%">Générer Rapport</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">🔄 Statut Synchronisation</div>
+        <div id="sync-status-detail"><div class="loading">Vérification...</div></div>
+        <div style="margin-top:12px">
+          <button class="btn btn-primary" onclick="syncAll()">🔄 Synchroniser tout</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

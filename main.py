@@ -53,10 +53,23 @@ async def startup():
     UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "/app/data/uploads"))
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+# ====================== LANDING PAGE ======================
 @app.get("/")
-async def root(request: Request):
+async def landing_page(request: Request):
+    """Page d'accueil marketing"""
     return templates.TemplateResponse("index.html", {"request": request})
 
+# ====================== APPLICATION PRINCIPALE ======================
+@app.get("/apps")
+async def main_app(request: Request):
+    """Application AgriData complète"""
+    return templates.TemplateResponse("apps.html", {"request": request})
+
+# Optionnel : Redirection /app vers l'application
+@app.get("/apps/")
+async def main_app_slash(request: Request):
+    return await main_app(request)
+    
 @app.get("/health")
 async def health():
     return {"status": "ok", "app": "AgriData CM v1.0"}
