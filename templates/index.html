@@ -293,39 +293,68 @@ input, select, textarea, button { font-family: var(--font-body); }
     <script>
       const API = '';  // même origine
 
-// ── i18n ─────────────────────────────────────────────────────────────────────
-const LANG = {
-  fr: {
-    s_collect:'COLLECTE', s_analyse:'ANALYSE',
-    nav_dashboard:'Tableau de bord', nav_producteur:'Producteur',
-    nav_parcelle:'Parcelle & GPS', nav_phyto:'Phytosanitaire',
-    nav_marche:'Prix Marché', nav_climat:'Climatologie',
-    nav_analyse:'Analyses Stat.', nav_donnees:'Données', nav_export:'Exporter',
-    t_dashboard:'Tableau de bord', sub_dashboard:'Vue d\'ensemble — Région Centre, Cameroun',
-    t_producteur:'Fiche Producteur', sub_producteur:'Recensement des producteurs agricoles',
-    sync_ok:'Tout synchronisé ✓', sync_pending:'enreg. en attente',
-  },
-  en: {
-    s_collect:'DATA COLLECTION', s_analyse:'ANALYSIS',
-    nav_dashboard:'Dashboard', nav_producteur:'Farmer',
-    nav_parcelle:'Plot & GPS', nav_phyto:'Phytosanitary',
-    nav_marche:'Market Price', nav_climat:'Climatology',
-    nav_analyse:'Stat. Analysis', nav_donnees:'Data', nav_export:'Export',
-    t_dashboard:'Dashboard', sub_dashboard:'Overview — Centre Region, Cameroon',
-    t_producteur:'Farmer Profile', sub_producteur:'Agricultural producer census',
-    sync_ok:'All synced ✓', sync_pending:'records pending',
-  }
-};
+// ============================ CONF LANG======================
+const SPACE_URL = "https://prad-sonkeng-mon-modele-traduction-fr-en-fpq.hf.space";
+
 let currentLang = 'fr';
 
-function setLang(l) {
-  currentLang = l;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.lang-btn').forEach(b => { if(b.textContent===l.toUpperCase()) b.classList.add('active'); });
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const k = el.getAttribute('data-i18n');
-    if (LANG[l][k]) el.textContent = LANG[l][k];
-  });
+// ============================ TRADUCTION IA ==================
+async function translateWithAI(text) {
+    if (!text || text.trim().length < 2) return text;
+    try {
+        const reponse = await fetch(`${SPACE_URL}/run/predict`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json" },
+            body: JSON.stringify({
+            data: [text, "French", "English"]
+            })
+        });
+        const result = await response.json();
+        
+        if (result.data && Array.isArray(result.data) && result.data[0]) {
+            return result.data[0],trim();
+        }
+        return result.data ? String(result.data).trim() : text;
+    } catch (error) {
+        console.warn("⚠️ Traduction IA échouée :", error);
+        return text;
+    }
+}
+
+// ====================CHANGEMENT DE LANGUE ==============
+async function setLang(l) {
+    currentLang = l;
+    //Mise à jour des boutons
+    document.querySelectorAll('.lang-btn').forEach (btn => {
+        btn.classList.toggle('active', btn.textContent === l.toUpperCase());
+    });
+    
+    if (l === 'fr') {
+        //retour au francais
+        localisation.reload();
+        return;
+    }
+    
+    //traduction
+    console.log("🌐 Traduction automatique vers EN eb cours... ");
+    
+    const elemnets = document.querySelectorAll ('h1, h2, h3, h4, p, span, button, a, label, td, th, li, .text, [class*="title"], [class*="label"], [placeholder]');
+    for (const el of elements) {
+        if(el.children.length > 0) continue; //ignore les éléments qui contiennent d'autres éléments
+        const originalText = el.dataset.original || el.textContent.trim();
+        
+        if(!el.dataset.original) {
+            el.dataset.original = originalText;
+        }
+        
+        if(originalText.length > 2) {
+            const translated = await translateWithAI(originalText);
+            if(translated && translated !== originalText) {
+                el.textContent = translated;
+            }
+        }
+    }
+    console.log("✅ Traduction automatique terminée !");
 }
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -345,6 +374,21 @@ function toast(msg, type = 'ok') {
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Rafraîchissement sync toutes les 30s
+  setInterval(loadSyncStatus, 30000);
+  // Active le bouton FR par défaut
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    if (btn.textContent === 'FR') btn.classList.add('active');
+    
+    btn.addeEventListener('click',  () => {
+    const lang = btn.textContent.toLowerCase();
+    setLang(lang);
+    });
+  });
+});
 
     </script>
 </body>
