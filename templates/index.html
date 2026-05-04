@@ -339,9 +339,9 @@ async function setLang(l) {
     //traduction
     console.log("🌐 Traduction automatique vers EN eb cours... ");
     
-    const elemnets = document.querySelectorAll ('h1, h2, h3, h4, p, span, button, a, label, td, th, li, .text, [class*="title"], [class*="label"], [placeholder]');
+    const elemnets = document.querySelectorAll ('h1, h2, h3, h4, h5, p, div, div, span, button, a, label, td, th, li, .text, [class*="title"], [class*="label"], [class*="text"], [placeholder], strong, option');
     for (const el of elements) {
-        if(el.children.length > 0) continue; //ignore les éléments qui contiennent d'autres éléments
+        if(el.children.length > 0) && !el.classList.contains('lang-toggle')) continue; //ignore les éléments qui contiennent d'autres éléments
         const originalText = el.dataset.original || el.textContent.trim();
         
         if(!el.dataset.original) {
@@ -381,14 +381,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Rafraîchissement sync toutes les 30s
   setInterval(loadSyncStatus, 30000);
   // Active le bouton FR par défaut
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    if (btn.textContent === 'FR') btn.classList.add('active');
-    
-    btn.addeEventListener('click',  () => {
-    const lang = btn.textContent.toLowerCase();
-    setLang(lang);
-    });
-  });
+  console.log("✅ Language system chargé");
+    // setLang('fr'); // déjà en FR au chargement
 });
 
     </script>
